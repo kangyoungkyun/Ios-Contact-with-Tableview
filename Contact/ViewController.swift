@@ -21,9 +21,36 @@ let cellId = "cellId"
         ["쨩거","리샤롱","쥬윤발"]
     ]
     
+    var showIndexPaths = false
+    
+    
+    //tableview row 좌우로 보이게 하기
+    @objc func handleShowIndexPath(){
+        
+        var indexPathToReload = [IndexPath]()
+        
+        //전체 색션과 행이 좌 우로 리로드
+        for section in twoDimenstionArray.indices {
+            for row in twoDimenstionArray[section].indices{
+                let indexPath = IndexPath(row:row , section:section)
+                indexPathToReload.append(indexPath)
+            }
+        }
+        //토글 키 : 한번 눌렀을 때 오른쪽에서 나타나게, 두번 눌렀을 때 왼쪽에서
+        showIndexPaths = !showIndexPaths
+        let animationStyle = showIndexPaths ? UITableViewRowAnimation.right : .left
+            tableView.reloadRows(at: indexPathToReload, with: animationStyle)
+        
+    }
+    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-       
+       //nav bar button 오른쪽에 생성
+        navigationItem.rightBarButtonItem =
+            UIBarButtonItem(title: "show indexPaht", style: .plain, target: self, action: #selector(handleShowIndexPath))
+        
+        //네비게이션 제목 등록
         navigationItem.title = "Contacts"
         navigationController?.navigationBar.prefersLargeTitles = true
         //cell 등록
@@ -50,8 +77,6 @@ let cellId = "cellId"
        // if section == 0 {
         //    return names.count
        // }
-        
-    
     }
 
     //셀 구성 부분 함수
@@ -62,9 +87,12 @@ let cellId = "cellId"
         let name =  twoDimenstionArray[indexPath.section][indexPath.row]
         //let name = self.names[indexPath.row]
         cell.textLabel?.text = name
-        cell.textLabel?.text = "\(name) Sectoin:\(indexPath.section) Row:\(indexPath.row)"
+        if(showIndexPaths){
+            
+            cell.textLabel?.text = "\(name) Sectoin:\(indexPath.section) Row:\(indexPath.row)"
+        }
+
         return cell
     }
 }
-
 
