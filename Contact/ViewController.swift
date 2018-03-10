@@ -12,14 +12,35 @@ class ViewController: UITableViewController {
     let cellId = "cellId"
     
     var twoDimenstionArray = [
-        ExpandableNames(isExpanded: true, names:  ["영균","은주","원일","태환","상찬","창민","대열","마더","파더","태영"]),
-        ExpandableNames(isExpanded: true, names:  ["mike","nick","tom"]),
-        ExpandableNames(isExpanded: true, names:  ["쨩거","리샤롱","쥬윤발"])
+        ExpandableNames(isExpanded: true, names:  ["영균","은주","원일","태환","상찬","창민","대열","마더","파더","태영"].map{  Contact(name: $0, hasFavorited: false)}),
+        ExpandableNames(isExpanded: true, names:  ["mike","nick","tom"].map{  Contact(name: $0, hasFavorited: false)}),
+        ExpandableNames(isExpanded: true, names:  ["쨩거","리샤롱","쥬윤발"].map{  Contact(name: $0, hasFavorited: false)})
         
     ]
+    
+    func showMarkActoin(cell: UITableViewCell){
+      
+        //눌린 cell의 위치가 나온다. section 0 : row 1
+        guard let indexPathTapped = tableView.indexPath(for: cell) else {return}
+        print(indexPathTapped)
+        
+        //선택된 이름 가져오기
+        let contact = twoDimenstionArray[indexPathTapped.section].names[indexPathTapped.row]
+        let hasFavorited = contact.hasFavorited
+        
+        print("- showMarkActoin \(hasFavorited)") // 처음 값은 false - 회색
+        //선택된 이름이 있는 배열에 contact 값에 hasFavorited 값을 변경해 준다.
+        twoDimenstionArray[indexPathTapped.section].names[indexPathTapped.row].hasFavorited = !hasFavorited
+       
+        //한번 눌렀을 때는 false 이기 때문에 빨간색
+        cell.accessoryView?.tintColor = hasFavorited ? UIColor.lightGray : .red
+        
+        print(contact.name)
+        print("- showMarkActoin-2 \(hasFavorited)")
+    }
+    
     //좌우로 행 reload 체크
     var showIndexPaths = false
-    
     
     //tableview row 좌우로 보이게 하기
     @objc func handleShowIndexPath(){
@@ -54,7 +75,7 @@ class ViewController: UITableViewController {
         navigationItem.title = "Contacts"
         navigationController?.navigationBar.prefersLargeTitles = true
         //cell 등록
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellId)
+        tableView.register(ContactCell.self, forCellReuseIdentifier: cellId)
     }
     
     //닫기 클릭했을 때
@@ -114,14 +135,22 @@ class ViewController: UITableViewController {
     //셀 구성 부분 함수
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         //deque 메서드는 register 메서드를 반드시 구현해야함!
-        let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as? ContactCell
         
-        let name =  twoDimenstionArray[indexPath.section].names[indexPath.row]
+        //cell에 있는 전역 변수 link는 ViewController다
+        cell?.link = self
         
-        cell.textLabel?.text = name
+        let contact =  twoDimenstionArray[indexPath.section].names[indexPath.row]
+        
+        cell?.textLabel?.text = contact.name
+        
+        print("- cellForRowAt \(contact.hasFavorited)")
+        
+        //struct에 담긴 Bool 값으로 별 버튼 색깔 변경
+        cell?.accessoryView?.tintColor = contact.hasFavorited ? UIColor.red : .lightGray
         if(showIndexPaths){
-            cell.textLabel?.text = "\(name) Sectoin:\(indexPath.section) Row:\(indexPath.row)"
+            cell?.textLabel?.text = "\(contact.name) Sectoin:\(indexPath.section) Row:\(indexPath.row)"
         }
-        return cell
+        return cell!
     }
 }

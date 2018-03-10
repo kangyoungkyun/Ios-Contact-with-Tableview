@@ -8,7 +8,15 @@
 
 import Foundation
 
+//펼쳐져 있는지 체크
 struct ExpandableNames {
     var isExpanded: Bool
-    let names: [String]
+    var names: [Contact]
+}
+
+
+//좋아요 눌렀는지 채크
+struct Contact {
+    let name: String
+    var hasFavorited: Bool
 }
