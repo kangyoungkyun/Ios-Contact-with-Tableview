@@ -7,16 +7,17 @@
 //
 
 import Foundation
+import Contacts
 
 //펼쳐져 있는지 체크
 struct ExpandableNames {
     var isExpanded: Bool
-    var names: [Contact]
+    var names: [FavoritContact]
 }
 
 
 //좋아요 눌렀는지 채크
-struct Contact {
-    let name: String
+struct FavoritContact {
+    let contact : CNContact
     var hasFavorited: Bool
 }

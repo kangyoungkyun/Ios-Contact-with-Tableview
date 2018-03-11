@@ -6,17 +6,20 @@
 //  Copyright © 2018년 MacBookPro. All rights reserved.
 //
 
+import Contacts
 import UIKit
 
 class ViewController: UITableViewController {
     let cellId = "cellId"
     
+     var twoDimenstionArray = [ExpandableNames]()
+    /*
     var twoDimenstionArray = [
-        ExpandableNames(isExpanded: true, names:  ["영균","은주","원일","태환","상찬","창민","대열","마더","파더","태영"].map{  Contact(name: $0, hasFavorited: false)}),
-        ExpandableNames(isExpanded: true, names:  ["mike","nick","tom"].map{  Contact(name: $0, hasFavorited: false)}),
-        ExpandableNames(isExpanded: true, names:  ["쨩거","리샤롱","쥬윤발"].map{  Contact(name: $0, hasFavorited: false)})
+        ExpandableNames(isExpanded: true, names:  ["영균","은주","원일","태환","상찬","창민","대열","마더","파더","태영"].map{  FavoritContact(name: $0, hasFavorited: false)}),
+        ExpandableNames(isExpanded: true, names:  ["mike","nick","tom"].map{  FavoritContact(name: $0, hasFavorited: false)}),
+        ExpandableNames(isExpanded: true, names:  ["쨩거","리샤롱","쥬윤발"].map{  FavoritContact(name: $0, hasFavorited: false)})
         
-    ]
+    ]*/
     
     func showMarkActoin(cell: UITableViewCell){
       
@@ -35,7 +38,7 @@ class ViewController: UITableViewController {
         //한번 눌렀을 때는 false 이기 때문에 빨간색
         cell.accessoryView?.tintColor = hasFavorited ? UIColor.lightGray : .red
         
-        print(contact.name)
+        //print(contact.name)
         print("- showMarkActoin-2 \(hasFavorited)")
     }
     
@@ -65,6 +68,46 @@ class ViewController: UITableViewController {
         return 36
     }
     
+    //주소록에 있는 정보 가져오기
+    private func fetchContact(){
+        let store = CNContactStore()
+        store.requestAccess(for: .contacts) { (granted, err) in
+            
+            if let err = err{
+                print("failed to request?:",err)
+                return
+            }
+            
+            if granted {
+                print("access granted")
+                let keys = [CNGroupNameKey,CNContactFamilyNameKey,CNContactPhoneNumbersKey]
+                let request = CNContactFetchRequest(keysToFetch: keys as [CNKeyDescriptor])
+                
+     
+                do{
+                    
+                    let favoritContacts = [FavoritContact]()
+                    try store.enumerateContacts(with: request, usingBlock: { (contact, stopPointer) in
+                        
+                       // favoritContacts.append(FavoritContact(name: contact.givenName + " " + contact.familyName, hasFavorited: false))
+                        print( contact.givenName,contact.familyName,contact.phoneNumbers.first?.value.stringValue ?? "")
+                        
+                        let names = ExpandableNames(isExpanded: true, names: favoritContacts)
+                        self.twoDimenstionArray = [names]
+                    })
+                }catch let err {
+                    print("err- ",err)
+                }
+
+            }else {
+                print("access denied..")
+            }
+
+        }
+
+    }
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         //nav bar button 오른쪽에 생성
@@ -76,6 +119,8 @@ class ViewController: UITableViewController {
         navigationController?.navigationBar.prefersLargeTitles = true
         //cell 등록
         tableView.register(ContactCell.self, forCellReuseIdentifier: cellId)
+        
+        fetchContact()
     }
     
     //닫기 클릭했을 때
@@ -135,22 +180,30 @@ class ViewController: UITableViewController {
     //셀 구성 부분 함수
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         //deque 메서드는 register 메서드를 반드시 구현해야함!
-        let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as? ContactCell
+        //let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as? ContactCell
+        
+        
+        let cell = ContactCell(style: .subtitle, reuseIdentifier: cellId)
         
         //cell에 있는 전역 변수 link는 ViewController다
-        cell?.link = self
+        cell.link = self
         
-        let contact =  twoDimenstionArray[indexPath.section].names[indexPath.row]
+        let favoritableContact =  twoDimenstionArray[indexPath.section].names[indexPath.row]
+        // 첫번째 칸
+        cell.textLabel?.text = favoritableContact.contact.givenName + " " + favoritableContact.contact.familyName
+        //두번째 칸
+        cell.detailTextLabel?.text = favoritableContact.contact.phoneNumbers.first?.value.stringValue
         
-        cell?.textLabel?.text = contact.name
+        cell.textLabel?.font = UIFont.boldSystemFont(ofSize: 14)
         
-        print("- cellForRowAt \(contact.hasFavorited)")
+        
+        print("- cellForRowAt \(favoritableContact.hasFavorited)")
         
         //struct에 담긴 Bool 값으로 별 버튼 색깔 변경
-        cell?.accessoryView?.tintColor = contact.hasFavorited ? UIColor.red : .lightGray
+        cell.accessoryView?.tintColor = favoritableContact.hasFavorited ? UIColor.red : .lightGray
         if(showIndexPaths){
-            cell?.textLabel?.text = "\(contact.name) Sectoin:\(indexPath.section) Row:\(indexPath.row)"
+            cell.textLabel?.text = "\(favoritableContact.contact.givenName) Sectoin:\(indexPath.section) Row:\(indexPath.row)"
         }
-        return cell!
+        return cell
     }
 }
